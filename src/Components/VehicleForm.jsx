@@ -34,8 +34,8 @@ const VehicleForm = () => {
 
     const method = editingVehicle ? "PUT" : "POST";
     const url = editingVehicle
-      ? `http://localhost:8090/vehicles/${editingVehicle.id}`
-      : "http://localhost:8090/vehicles";
+      ? `${process.env.REACT_APP_API_URL}/vehicles/${editingVehicle.id}`
+      : `${process.env.REACT_APP_API_URL}/vehicles`;
 
     try {
       const token = cookies.get("token");

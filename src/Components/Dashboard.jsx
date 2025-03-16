@@ -28,7 +28,7 @@ const Dashboard = () => {
       }
 
       try {
-        const response = await fetch("http://localhost:8090/vehicles", {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/vehicles`, {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -60,7 +60,7 @@ const Dashboard = () => {
   const handleDelete = async (id) => {
     try {
       const token = cookies.get("token");
-      const response = await fetch(`http://localhost:8090/vehicles/${id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/vehicles/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -234,7 +234,7 @@ const Dashboard = () => {
           ))
         ) : (
           <p className="text-gray-600 text-center col-span-3">
-            No vehicles available.
+            No vehicles info added yet. Get started by adding one now!
           </p>
         )}
       </div>
