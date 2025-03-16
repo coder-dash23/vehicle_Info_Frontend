@@ -2,13 +2,21 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useVehicle } from "../context/VehicleContext";
 import Cookies from "universal-cookie";
+import Downloadcsv from "../Components/Downloadcsv"
 
 const Dashboard = () => {
   const { vehicles, setVehicles } = useVehicle();
   const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState({
+    type: "",
+    fuel: "",
+    transmission: "",
+  });
+
   const navigate = useNavigate();
   const cookies = useMemo(() => new Cookies(), []);
-  const username =  cookies.get("username");
+  const username = cookies.get("username");
 
   useEffect(() => {
     const fetchVehicles = async () => {
@@ -32,9 +40,6 @@ const Dashboard = () => {
         }
 
         const data = await response.json();
-        console.log(data);
-
-        
         setVehicles(data);
       } catch (error) {
         console.error("Error fetching vehicles:", error);
@@ -59,7 +64,7 @@ const Dashboard = () => {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -76,7 +81,32 @@ const Dashboard = () => {
     }
   };
 
+  // Search Handler
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
 
+  // Filter Handler
+  const handleFilterChange = (e) => {
+    setFilters({ ...filters, [e.target.name]: e.target.value });
+  };
+
+
+
+  const filteredVehicles = vehicles.filter((vehicle) => {
+    return (
+      (searchQuery === "" ||
+        vehicle.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        vehicle.model?.toLowerCase().includes(searchQuery.toLowerCase()) || // Ensure model exists
+        vehicle.plate.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        vehicle.color.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        vehicle.year.toString().includes(searchQuery)) && // Ensure year is treated as string
+      (filters.type === "" || vehicle.type === filters.type) &&
+      (filters.fuel === "" || vehicle.fuel === filters.fuel) &&
+      (filters.transmission === "" ||
+        vehicle.transmission === filters.transmission)
+    );
+  });
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -99,16 +129,65 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Vehicle List */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {vehicles.length > 0 ? (
-          vehicles.map((vehicle) => (
-            
+      {/* Search & Filter Section */}
+      <div className="flex flex-col md:flex-row gap-2 mb-6">
+        <input
+          type="text"
+          placeholder="Search by name, model, plate, colors..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+          className="p-2 border rounded w-full md:w-1/3"
+        />
+
+        <select
+          name="type"
+          value={filters.type}
+          onChange={handleFilterChange}
+          className="p-2 border rounded"
+        >
+          <option value="">All Types</option>
+          <option value="Car">Car</option>
+          <option value="Bike">Bike</option>
+          <option value="Bus">Bus</option>
+        </select>
+
+        <select
+          name="fuel"
+          value={filters.fuel}
+          onChange={handleFilterChange}
+          className="p-2 border rounded"
+        >
+          <option value="">All Fuel Types</option>
+          <option value="Petrol">Petrol</option>
+          <option value="Diesel">Diesel</option>
+          <option value="Electric">Electric</option>
+        </select>
+
+        <select
+          name="transmission"
+          value={filters.transmission}
+          onChange={handleFilterChange}
+          className="p-2 border rounded"
+        >
+          <option value="">All Transmissions</option>
+          <option value="Automatic">Automatic</option>
+          <option value="Manual">Manual</option>
+        </select>
+      </div>
+
+      <Downloadcsv/>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {filteredVehicles.length > 0 ? (
+          filteredVehicles.map((vehicle) => (
             <div
               key={vehicle.id}
               className="bg-white shadow-lg rounded-lg p-5 border"
             >
               <h3 className="text-xl font-semibold">{vehicle.name}</h3>
+              <p className="text-gray-600 mt-2">
+                Model No: <span className="font-medium">{vehicle.model}</span>
+              </p>
               <p className="text-gray-600 mt-2">
                 Type: <span className="font-medium">{vehicle.type}</span>
               </p>
@@ -135,7 +214,7 @@ const Dashboard = () => {
               </p>
 
               {/* Action Buttons */}
-              <div className="flex gap-2 mt-4">
+              <div className="flex justify-between mt-4">
                 <button
                   onClick={() =>
                     navigate("/add-vehicle", { state: { vehicle } })
