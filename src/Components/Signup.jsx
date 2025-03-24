@@ -8,11 +8,13 @@ const Signup = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    setLoading(true);
   
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/users`, {
@@ -30,6 +32,9 @@ const Signup = () => {
           errorData = JSON.parse(responseText); // Try parsing JSON if it's available
         } catch (err) {
           errorData = { message: responseText || "An error occurred" }; // Fallback if no valid JSON
+        }
+        finally {
+          setLoading(false); // Stop loader
         }
   
         throw new Error(errorData.message || "Signup failed");
@@ -78,7 +83,11 @@ const Signup = () => {
             required
           />
           <button className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-800 cursor-pointer">
-            Sign Up
+          {loading ? (
+            <h2>Signing up... Please wait</h2>
+          ) : (
+            "Sign Up"
+          )}
           </button>
         </form>
         <p className="mt-3 text-center">

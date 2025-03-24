@@ -10,6 +10,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const token = cookies.get("token");
@@ -24,6 +25,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setLoading(true); // Start loader
 
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/users/login`, {
@@ -48,6 +50,9 @@ const Login = () => {
     } catch (err) {
       console.error("Login error:", err);
       setError(err.message);
+    }
+    finally {
+      setLoading(false); // Stop loader
     }
   };
 
@@ -78,7 +83,11 @@ const Login = () => {
           required
         />
         <button className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-800 cursor-pointer">
-          Login
+        {loading ? (   
+            <h2>Logging in... Please wait</h2>
+          ) : (
+            "Login"
+          )}
         </button>
       </form>
   
